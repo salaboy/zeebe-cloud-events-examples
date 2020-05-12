@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" exporter="Zeebe Modeler" exporterVersion="0.6.2" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_03t4elz" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="EMIT_AND_CONTINUE" isClosed="false" isExecutable="true" name="EMIT_AND_CONTINUE" processType="None">
+    <bpmn:startEvent id="StartEvent_1" isInterrupting="true" parallelMultiple="false">
+      <bpmn:outgoing>SequenceFlow_0n01mjy</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask completionQuantity="1" id="ServiceTask_10ttvn6" implementation="##WebService" isForCompensation="false" name="Emit Cloud Event" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Host" value="http://knative-hello-world.default.34.91.23.89.xip.io"/>
+          <zeebe:header key="Mode" value="EMIT_ONLY"/>
+          <zeebe:header key="Type" value="generic"/>
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="knative"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0n01mjy</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0sit1ia</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0n01mjy" sourceRef="StartEvent_1" targetRef="ServiceTask_10ttvn6"/>
+    <bpmn:intermediateCatchEvent id="IntermediateCatchEvent_1bgr4nq" name="Consume Cloud Event" parallelMultiple="false">
+      <bpmn:incoming>SequenceFlow_0sit1ia</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1vg8uvx</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_1i9vw8p"/>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0sit1ia" sourceRef="ServiceTask_10ttvn6" targetRef="IntermediateCatchEvent_1bgr4nq"/>
+    <bpmn:endEvent id="EndEvent_1ijoyax">
+      <bpmn:incoming>SequenceFlow_1vg8uvx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1vg8uvx" sourceRef="IntermediateCatchEvent_1bgr4nq" targetRef="EndEvent_1ijoyax"/>
+  </bpmn:process>
+  <bpmn:message id="Message_1i9vw8p" name="Cloud Event Response">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=myVarId"/>
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="EMIT_AND_CONTINUE" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="179" y="103"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ServiceTask_10ttvn6" id="ServiceTask_10ttvn6_di">
+        <dc:Bounds height="80" width="100" x="265" y="81"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0n01mjy" id="SequenceFlow_0n01mjy_di">
+        <di:waypoint x="215" y="121"/>
+        <di:waypoint x="265" y="121"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="IntermediateCatchEvent_1bgr4nq" id="IntermediateCatchEvent_1bgr4nq_di">
+        <dc:Bounds height="36" width="36" x="415" y="103"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="79" x="394" y="146"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0sit1ia" id="SequenceFlow_0sit1ia_di">
+        <di:waypoint x="365" y="121"/>
+        <di:waypoint x="415" y="121"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="EndEvent_1ijoyax" id="EndEvent_1ijoyax_di">
+        <dc:Bounds height="36" width="36" x="501" y="103"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1vg8uvx" id="SequenceFlow_1vg8uvx_di">
+        <di:waypoint x="451" y="121"/>
+        <di:waypoint x="501" y="121"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

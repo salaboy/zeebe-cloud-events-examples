@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" exporter="Zeebe Modeler" exporterVersion="0.6.2" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_0l9epax" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="TICKETS" isClosed="false" isExecutable="true" name="TICKETS" processType="None">
+    <bpmn:startEvent id="StartEvent" isInterrupting="true" name="Customer Wants to buy Tickets" parallelMultiple="false">
+      <bpmn:outgoing>SequenceFlow_11pdp9c</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask completionQuantity="1" id="QueueToReserveTicketServiceTask" implementation="##WebService" isForCompensation="false" name="Queue to Reserve Ticket" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Mode" value="EMIT_ONLY"/>
+          <zeebe:header key="Host" value="http://localhost:8082/queue"/>
+          <zeebe:header key="Type" value="Tickets.CustomerQueueJoined"/>
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="cloudevents"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_11pdp9c</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_100ck2m</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_11pdp9c" sourceRef="StartEvent" targetRef="QueueToReserveTicketServiceTask"/>
+    <bpmn:intermediateCatchEvent id="IntermediateCatchEvent_1vaejnn" name="Ticket Reserved" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=tickets" target="tickets"/>
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_100ck2m</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0sn9ntw</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_08alf2j"/>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_100ck2m" sourceRef="QueueToReserveTicketServiceTask" targetRef="IntermediateCatchEvent_1vaejnn"/>
+    <bpmn:serviceTask completionQuantity="1" id="CheckoutServiceTask" implementation="##WebService" isForCompensation="false" name="Check Out " startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Mode" value="WAIT_FOR_CLOUD_EVENT"/>
+          <zeebe:header key="WaitType" value="Payments.Recieved"/>
+          <zeebe:header key="Type" value="Tickets.CheckedOut"/>
+          <zeebe:header key="Host" value="http://localhost:8082/checkout"/>
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="cloudevents"/>
+        <zeebe:ioMapping>
+          <zeebe:output source="=paymentId" target="paymentId"/>
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0sn9ntw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_17smlwn</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask completionQuantity="1" id="NotifyCheckoutTimeOutServiceTask" implementation="##WebService" isForCompensation="false" name="Notify Checkout Time Out" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="cloudevents"/>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Host" value="http://localhost:8082/notifications"/>
+          <zeebe:header key="Mode" value="EMIT_ONLY"/>
+          <zeebe:header key="Type" value="Notifications.Requested"/>
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0005gcn</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14ptqt8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="CheckoutTimeOutEndEvent" name="Checkout Time Out Error">
+      <bpmn:incoming>SequenceFlow_14ptqt8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_14ptqt8" sourceRef="NotifyCheckoutTimeOutServiceTask" targetRef="CheckoutTimeOutEndEvent"/>
+    <bpmn:serviceTask completionQuantity="1" id="EmitTicketsServiceTask" implementation="##WebService" isForCompensation="false" name="Emit Tickets" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="cloudevents"/>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Host" value="http://localhost:8082/tickets/emit"/>
+          <zeebe:header key="Mode" value="EMIT_ONLY"/>
+          <zeebe:header key="Type" value="Tickets.Emitted"/>
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0q3jn3b</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1lkwqju</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="TicketsPurchasedEndEvent" name="Tickets Purchased">
+      <bpmn:incoming>SequenceFlow_1lkwqju</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1lkwqju" sourceRef="EmitTicketsServiceTask" targetRef="TicketsPurchasedEndEvent"/>
+    <bpmn:serviceTask completionQuantity="1" id="NotifyPaymentTimeOutServiceTask" implementation="##WebService" isForCompensation="false" name="Notify Payment Time Out" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="cloudevents"/>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Host" value="http://localhost:8082/notifications"/>
+          <zeebe:header key="Mode" value="EMIT_ONLY"/>
+          <zeebe:header key="Type" value="Notifications.Requested"/>
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0is8ce7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0fy0tkt</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="PaymentTimeOutEndEvent" name="Payment Time Out Error">
+      <bpmn:incoming>SequenceFlow_0fy0tkt</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0fy0tkt" sourceRef="NotifyPaymentTimeOutServiceTask" targetRef="PaymentTimeOutEndEvent"/>
+    <bpmn:sequenceFlow id="SequenceFlow_0sn9ntw" sourceRef="IntermediateCatchEvent_1vaejnn" targetRef="CheckoutServiceTask"/>
+    <bpmn:boundaryEvent attachedToRef="CheckoutServiceTask" cancelActivity="true" id="BoundaryEvent_1twhsxh" name="Checkout Time Out&#10;&#10;" parallelMultiple="false">
+      <bpmn:outgoing>SequenceFlow_0005gcn</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT60S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0005gcn" sourceRef="BoundaryEvent_1twhsxh" targetRef="NotifyCheckoutTimeOutServiceTask"/>
+    <bpmn:subProcess completionQuantity="1" id="SubProcess_11q95mf" isForCompensation="false" name="Payment Processing" startQuantity="1" triggeredByEvent="false">
+      <bpmn:incoming>SequenceFlow_17smlwn</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0q3jn3b</bpmn:outgoing>
+      <bpmn:intermediateCatchEvent id="PaymentApprovedIntermediateCatchEvent" name="Payment Approved" parallelMultiple="false">
+        <bpmn:incoming>SequenceFlow_1vczgff</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1pebfnp</bpmn:outgoing>
+        <bpmn:messageEventDefinition messageRef="Message_0l9j774"/>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:startEvent id="StartEvent_1hwl4p5" isInterrupting="true" parallelMultiple="false">
+        <bpmn:outgoing>SequenceFlow_1vczgff</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:endEvent id="EndEvent_0pxmwsj">
+        <bpmn:incoming>SequenceFlow_1pebfnp</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_1vczgff" sourceRef="StartEvent_1hwl4p5" targetRef="PaymentApprovedIntermediateCatchEvent"/>
+      <bpmn:sequenceFlow id="SequenceFlow_1pebfnp" sourceRef="PaymentApprovedIntermediateCatchEvent" targetRef="EndEvent_0pxmwsj"/>
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent attachedToRef="SubProcess_11q95mf" cancelActivity="true" id="BoundaryEvent_1iksw3g" name="Payment Time Out" parallelMultiple="false">
+      <bpmn:outgoing>SequenceFlow_0is8ce7</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT60S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0is8ce7" sourceRef="BoundaryEvent_1iksw3g" targetRef="NotifyPaymentTimeOutServiceTask"/>
+    <bpmn:sequenceFlow id="SequenceFlow_17smlwn" sourceRef="CheckoutServiceTask" targetRef="SubProcess_11q95mf"/>
+    <bpmn:sequenceFlow id="SequenceFlow_0q3jn3b" sourceRef="SubProcess_11q95mf" targetRef="EmitTicketsServiceTask"/>
+  </bpmn:process>
+  <bpmn:message id="Message_08alf2j" name="Tickets.Reserved">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId"/>
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_0l9j774" name="Payments.Approved">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=paymentId"/>
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="TICKETS" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="190" y="346"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="82" x="169" y="389"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="QueueToReserveTicketServiceTask" id="ServiceTask_0zy1y4v_di">
+        <dc:Bounds height="80" width="100" x="265" y="324"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_11pdp9c" id="SequenceFlow_11pdp9c_di">
+        <di:waypoint x="226" y="364"/>
+        <di:waypoint x="265" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="IntermediateCatchEvent_1vaejnn" id="IntermediateCatchEvent_1vaejnn_di">
+        <dc:Bounds height="36" width="36" x="415" y="346"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="80" x="393" y="389"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_100ck2m" id="SequenceFlow_100ck2m_di">
+        <di:waypoint x="365" y="364"/>
+        <di:waypoint x="415" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="CheckoutServiceTask" id="ServiceTask_1eeth3z_di">
+        <dc:Bounds height="80" width="100" x="522" y="324"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="NotifyCheckoutTimeOutServiceTask" id="ServiceTask_1owt6hw_di">
+        <dc:Bounds height="80" width="100" x="522" y="174"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="PaymentApprovedIntermediateCatchEvent" id="IntermediateCatchEvent_1dhnjy3_di">
+        <dc:Bounds height="36" width="36" x="788" y="345"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="48" x="783" y="388"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="CheckoutTimeOutEndEvent" id="EndEvent_1jzlbj7_di">
+        <dc:Bounds height="36" width="36" x="554" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="74" x="536" y="69"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_14ptqt8" id="SequenceFlow_14ptqt8_di">
+        <di:waypoint x="572" y="174"/>
+        <di:waypoint x="572" y="135"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="EmitTicketsServiceTask" id="ServiceTask_1j8fbzj_di">
+        <dc:Bounds height="80" width="100" x="987" y="324"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="TicketsPurchasedEndEvent" id="EndEvent_0erl7zb_di">
+        <dc:Bounds height="36" width="36" x="1120" y="346"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="53" x="1112" y="389"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1lkwqju" id="SequenceFlow_1lkwqju_di">
+        <di:waypoint x="1087" y="364"/>
+        <di:waypoint x="1120" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="NotifyPaymentTimeOutServiceTask" id="ServiceTask_1nwa4ee_di">
+        <dc:Bounds height="80" width="100" x="856" y="152"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="PaymentTimeOutEndEvent" id="EndEvent_03a2o80_di">
+        <dc:Bounds height="36" width="36" x="888" y="81"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="71" x="871" y="51"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0fy0tkt" id="SequenceFlow_0fy0tkt_di">
+        <di:waypoint x="906" y="152"/>
+        <di:waypoint x="906" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0sn9ntw" id="SequenceFlow_0sn9ntw_di">
+        <di:waypoint x="451" y="364"/>
+        <di:waypoint x="522" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="BoundaryEvent_1twhsxh" id="BoundaryEvent_1twhsxh_di">
+        <dc:Bounds height="36" width="36" x="554" y="306"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="53" width="74" x="583" y="286"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0005gcn" id="SequenceFlow_0005gcn_di">
+        <di:waypoint x="572" y="306"/>
+        <di:waypoint x="572" y="214"/>
+        <di:waypoint x="572" y="254"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="SubProcess_11q95mf" id="SubProcess_11q95mf_di" isExpanded="true">
+        <dc:Bounds height="159" width="272" x="672" y="284"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="BoundaryEvent_1iksw3g" id="BoundaryEvent_1iksw3g_di">
+        <dc:Bounds height="36" width="36" x="888" y="266"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="71" x="924" y="244"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0is8ce7" id="SequenceFlow_0is8ce7_di">
+        <di:waypoint x="906" y="266"/>
+        <di:waypoint x="906" y="192"/>
+        <di:waypoint x="906" y="232"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_17smlwn" id="SequenceFlow_17smlwn_di">
+        <di:waypoint x="622" y="364"/>
+        <di:waypoint x="672" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0q3jn3b" id="SequenceFlow_0q3jn3b_di">
+        <di:waypoint x="944" y="364"/>
+        <di:waypoint x="987" y="364"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1hwl4p5" id="StartEvent_1hwl4p5_di">
+        <dc:Bounds height="36" width="36" x="713" y="345"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent_0pxmwsj" id="EndEvent_0pxmwsj_di">
+        <dc:Bounds height="36" width="36" x="860" y="345"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1vczgff" id="SequenceFlow_1vczgff_di">
+        <di:waypoint x="749" y="363"/>
+        <di:waypoint x="788" y="363"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1pebfnp" id="SequenceFlow_1pebfnp_di">
+        <di:waypoint x="824" y="363"/>
+        <di:waypoint x="860" y="363"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

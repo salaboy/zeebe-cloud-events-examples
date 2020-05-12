@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" exporter="Zeebe Modeler" exporterVersion="0.6.2" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_0zyywyv" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="EMIT_WAIT" isClosed="false" isExecutable="true" name="EMIT_WAIT" processType="None">
+    <bpmn:startEvent id="StartEvent_1" isInterrupting="true" parallelMultiple="false">
+      <bpmn:outgoing>SequenceFlow_0spr4ug</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask completionQuantity="1" id="ServiceTask_1gpy4qq" implementation="##WebService" isForCompensation="false" name="Emit and Wait for Cloud Event" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="knative"/>
+        <zeebe:taskHeaders>
+          <zeebe:header key="Host" value="http://knative-hello-world.default.34.91.23.89.xip.io"/>
+          <zeebe:header key="Type" value="generic"/>
+          <zeebe:header key="Mode" value="WAIT_FOR_CLOUD_EVENT"/>
+          <zeebe:header key="WaitType" value="response"/>
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0spr4ug</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_099lik4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0spr4ug" sourceRef="StartEvent_1" targetRef="ServiceTask_1gpy4qq"/>
+    <bpmn:endEvent id="EndEvent_01w190z">
+      <bpmn:incoming>SequenceFlow_099lik4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_099lik4" sourceRef="ServiceTask_1gpy4qq" targetRef="EndEvent_01w190z"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="EMIT_WAIT" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="179" y="103"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ServiceTask_1gpy4qq" id="ServiceTask_1gpy4qq_di">
+        <dc:Bounds height="80" width="100" x="265" y="81"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_0spr4ug" id="SequenceFlow_0spr4ug_di">
+        <di:waypoint x="215" y="121"/>
+        <di:waypoint x="265" y="121"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="EndEvent_01w190z" id="EndEvent_01w190z_di">
+        <dc:Bounds height="36" width="36" x="415" y="103"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_099lik4" id="SequenceFlow_099lik4_di">
+        <di:waypoint x="365" y="121"/>
+        <di:waypoint x="415" y="121"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -4,7 +4,7 @@
     <bpmn:startEvent id="StartEvent" name="Customer Wants to buy Tickets">
       <bpmn:outgoing>SequenceFlow_11pdp9c</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="QueueToReserveTicketServiceTask" name="Queue to Request Tickets" implementation="##WebService">
+    <bpmn:serviceTask id="QueueToRequestTicketServiceTask" name="Queue to Request Tickets" implementation="##WebService">
       <bpmn:extensionElements>
         <zeebe:taskHeaders>
           <zeebe:header key="Mode" value="EMIT_ONLY" />
@@ -16,7 +16,7 @@
       <bpmn:incoming>SequenceFlow_11pdp9c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_100ck2m</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="SequenceFlow_11pdp9c" sourceRef="StartEvent" targetRef="QueueToReserveTicketServiceTask" />
+    <bpmn:sequenceFlow id="SequenceFlow_11pdp9c" sourceRef="StartEvent" targetRef="QueueToRequestTicketServiceTask" />
     <bpmn:intermediateCatchEvent id="IntermediateCatchEvent_1vaejnn" name="Ticket Requested">
       <bpmn:extensionElements>
         <zeebe:ioMapping>
@@ -27,12 +27,12 @@
       <bpmn:outgoing>SequenceFlow_0sn9ntw</bpmn:outgoing>
       <bpmn:messageEventDefinition messageRef="Message_08alf2j" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_100ck2m" sourceRef="QueueToReserveTicketServiceTask" targetRef="IntermediateCatchEvent_1vaejnn" />
+    <bpmn:sequenceFlow id="SequenceFlow_100ck2m" sourceRef="QueueToRequestTicketServiceTask" targetRef="IntermediateCatchEvent_1vaejnn" />
     <bpmn:serviceTask id="CheckoutServiceTask" name="Check Out " implementation="##WebService">
       <bpmn:extensionElements>
         <zeebe:taskHeaders>
           <zeebe:header key="Mode" value="WAIT_FOR_CLOUD_EVENT" />
-          <zeebe:header key="WaitType" value="Payments.Recieved" />
+          <zeebe:header key="WaitType" value="Payments.RequestReceived" />
           <zeebe:header key="Type" value="Tickets.CheckedOut" />
           <zeebe:header key="Host" value="http://localhost:8082/checkout" />
         </zeebe:taskHeaders>
@@ -103,7 +103,7 @@
     <bpmn:subProcess id="SubProcess_11q95mf" name="Payment Processing">
       <bpmn:incoming>SequenceFlow_17smlwn</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0q3jn3b</bpmn:outgoing>
-      <bpmn:intermediateCatchEvent id="PaymentApprovedIntermediateCatchEvent" name="Payment Approved">
+      <bpmn:intermediateCatchEvent id="PaymentApprovedIntermediateCatchEvent" name="Payment Authorized">
         <bpmn:incoming>SequenceFlow_1vczgff</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1pebfnp</bpmn:outgoing>
         <bpmn:messageEventDefinition messageRef="Message_0l9j774" />
@@ -132,7 +132,7 @@
       <zeebe:subscription correlationKey="=sessionId" />
     </bpmn:extensionElements>
   </bpmn:message>
-  <bpmn:message id="Message_0l9j774" name="Payments.Approved">
+  <bpmn:message id="Message_0l9j774" name="Payments.Authorized">
     <bpmn:extensionElements>
       <zeebe:subscription correlationKey="=paymentId" />
     </bpmn:extensionElements>
@@ -142,10 +142,10 @@
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent">
         <dc:Bounds x="190" y="346" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="169" y="389" width="82" height="27" />
+          <dc:Bounds x="132" y="310" width="82" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_0zy1y4v_di" bpmnElement="QueueToReserveTicketServiceTask">
+      <bpmndi:BPMNShape id="ServiceTask_0zy1y4v_di" bpmnElement="QueueToRequestTicketServiceTask">
         <dc:Bounds x="265" y="324" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_11pdp9c_di" bpmnElement="SequenceFlow_11pdp9c">
@@ -171,7 +171,7 @@
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1dhnjy3_di" bpmnElement="PaymentApprovedIntermediateCatchEvent">
         <dc:Bounds x="788" y="345" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="783" y="388" width="48" height="27" />
+          <dc:Bounds x="781" y="388" width="53" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1jzlbj7_di" bpmnElement="CheckoutTimeOutEndEvent">

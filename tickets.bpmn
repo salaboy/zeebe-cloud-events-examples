@@ -32,7 +32,7 @@
       <bpmn:extensionElements>
         <zeebe:taskHeaders>
           <zeebe:header key="Mode" value="WAIT_FOR_CLOUD_EVENT" />
-          <zeebe:header key="WaitType" value="Payments.Recieved" />
+          <zeebe:header key="WaitType" value="Payments.RequestReceived" />
           <zeebe:header key="Type" value="Tickets.CheckedOut" />
           <zeebe:header key="Host" value="http://tickets-service/checkout" />
         </zeebe:taskHeaders>
@@ -119,7 +119,7 @@
       <zeebe:subscription correlationKey="=sessionId" />
     </bpmn:extensionElements>
   </bpmn:message>
-  <bpmn:message id="Message_0l9j774" name="Payments.Approved">
+  <bpmn:message id="Message_0l9j774" name="Payments.Authorized">
     <bpmn:extensionElements>
       <zeebe:subscription correlationKey="=paymentId" />
     </bpmn:extensionElements>

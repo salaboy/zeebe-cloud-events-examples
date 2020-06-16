@@ -31,9 +31,10 @@ In the following sections, an Orchestration approach is introduced without chang
 
 
 # Source Code:
-- Zeebe Cloud Events Router: 
-- Tickets Service: 
-- Payments Service: 
+- Zeebe Cloud Events Router: http://github.com/zeebe-io/zeebe-cloud-events-router/
+- Tickets Service: http://github.com/salaboy/tickets-service
+- Payments Service: http://github.com/salaboy/tickets-service
 
 # How to run the examples: 
 
+Find the instructions here: https://salaboy.com/2020/05/18/orchestrating-cloud-events-with-zeebe/

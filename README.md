@@ -33,7 +33,7 @@ In the following sections, an Orchestration approach is introduced without chang
 # Source Code:
 - Zeebe Cloud Events Router: http://github.com/zeebe-io/zeebe-cloud-events-router/
 - Tickets Service: http://github.com/salaboy/tickets-service
-- Payments Service: http://github.com/salaboy/tickets-service
+- Payments Service: http://github.com/salaboy/payments-service
 
 # How to run the examples: 
 

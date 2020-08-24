@@ -1,0 +1,82 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-queue-join-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Queue.CustomerJoined
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message
+
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-queue-abandon-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Queue.CustomerAbandoned
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message
+
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-queue-exit-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Queue.CustomerExited
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message
+
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-tickets-reserved-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Tickets.Reserved
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message
+
+---    
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-tickets-payment-requested-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Tickets.PaymentRequested
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message    
+
+---    
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: router-tickets-payment-authorized-trigger
+  namespace: default
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: Tickets.PaymentsAuthorized
+  subscriber:
+    uri: http://zeebe-cloud-events-router.default.svc.cluster.local/message      

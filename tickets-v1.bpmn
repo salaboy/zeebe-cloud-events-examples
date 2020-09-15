@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1y4xhrn" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.10.0">
+  <bpmn:process id="TICKETS" name="TICKETS" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Customer Joined Queue">
+      <bpmn:outgoing>Flow_0tfwr4f</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_01rtyuh" messageRef="Message_1frkghv" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0tfwr4f" sourceRef="StartEvent_1" targetRef="Activity_05megik" />
+    <bpmn:receiveTask id="Activity_05megik" name="Queue Exited" messageRef="Message_1wk33in">
+      <bpmn:incoming>Flow_0tfwr4f</bpmn:incoming>
+      <bpmn:outgoing>Flow_06x0ya5</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sequenceFlow id="Flow_06x0ya5" sourceRef="Activity_05megik" targetRef="Activity_1qqr2bj" />
+    <bpmn:sequenceFlow id="Flow_1k90v1m" sourceRef="Activity_1qqr2bj" targetRef="Activity_1pbxlqk" />
+    <bpmn:receiveTask id="Activity_1qqr2bj" name="Tickets Reserved" messageRef="Message_17hvlji">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=reservationId" target="reservationId" />
+          <zeebe:output source="=ticketsQuantity" target="ticketsQuantity" />
+          <zeebe:output source="=ticketsType" target="ticketsType" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06x0ya5</bpmn:incoming>
+      <bpmn:outgoing>Flow_1k90v1m</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_1pbxlqk" name="Payment Was Sent" messageRef="Message_1mj15kq">
+      <bpmn:incoming>Flow_1k90v1m</bpmn:incoming>
+      <bpmn:outgoing>Flow_0m3fiuk</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sequenceFlow id="Flow_0m3fiuk" sourceRef="Activity_1pbxlqk" targetRef="Activity_0p0qutd" />
+    <bpmn:receiveTask id="Activity_0p0qutd" name="Payment Authorized" messageRef="Message_1l9v4ya">
+      <bpmn:incoming>Flow_0m3fiuk</bpmn:incoming>
+      <bpmn:outgoing>Flow_06uiifu</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_0y9tphm">
+      <bpmn:incoming>Flow_06uiifu</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_06uiifu" sourceRef="Activity_0p0qutd" targetRef="Event_0y9tphm" />
+  </bpmn:process>
+  <bpmn:message id="Message_1frkghv" name="Queue.CustomerJoined" />
+  <bpmn:message id="Message_1wk33in" name="Queue.CustomerExited">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_17hvlji" name="Tickets.Reserved">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_1mj15kq" name="Tickets.PaymentRequested">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=reservationId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_1l9v4ya" name="Tickets.PaymentsAuthorized">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=reservationId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="TICKETS">
+      <bpmndi:BPMNEdge id="Flow_06uiifu_di" bpmnElement="Flow_06uiifu">
+        <di:waypoint x="850" y="117" />
+        <di:waypoint x="912" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0m3fiuk_di" bpmnElement="Flow_0m3fiuk">
+        <di:waypoint x="690" y="117" />
+        <di:waypoint x="750" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k90v1m_di" bpmnElement="Flow_1k90v1m">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="590" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06x0ya5_di" bpmnElement="Flow_06x0ya5">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="430" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tfwr4f_di" bpmnElement="Flow_0tfwr4f">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0q0asfq_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="155" y="142" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rsqtak_di" bpmnElement="Activity_05megik">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1s0paca_di" bpmnElement="Activity_1qqr2bj">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0yia628_di" bpmnElement="Activity_1pbxlqk">
+        <dc:Bounds x="590" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0d8ghh4_di" bpmnElement="Activity_0p0qutd">
+        <dc:Bounds x="750" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0y9tphm_di" bpmnElement="Event_0y9tphm">
+        <dc:Bounds x="912" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

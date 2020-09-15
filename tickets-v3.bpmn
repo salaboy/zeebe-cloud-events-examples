@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1f7n97d" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.10.0">
+  <bpmn:process id="TICKETS" name="TICKETS" isExecutable="true">
+    <bpmn:startEvent id="Event_12583m9" name="Customer Joined Queue">
+      <bpmn:outgoing>Flow_0dj0jv3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1evf326" messageRef="Message_1vkitoz" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_1r97kjj" name="Tickets Purchased">
+      <bpmn:incoming>Flow_0gsp6os</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Activity_0uir0bf" name="Customer Buying Tickets">
+      <bpmn:incoming>Flow_0dj0jv3</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gsp6os</bpmn:outgoing>
+      <bpmn:startEvent id="Event_116uzgw">
+        <bpmn:outgoing>Flow_1t0ycc2</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:receiveTask id="Activity_1uqxy1n" name="Tickets Reserved" messageRef="Message_0sesh39">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="=reservationId" target="reservationId" />
+            <zeebe:output source="=ticketsQuantity" target="ticketsQuantity" />
+            <zeebe:output source="=ticketsType" target="ticketsType" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1vqmayq</bpmn:incoming>
+        <bpmn:outgoing>Flow_0ya5os8</bpmn:outgoing>
+      </bpmn:receiveTask>
+      <bpmn:receiveTask id="Activity_0nh4mdv" name="Payment Sent" messageRef="Message_1qq1kuy">
+        <bpmn:incoming>Flow_1h97jpr</bpmn:incoming>
+        <bpmn:outgoing>Flow_05ykaf3</bpmn:outgoing>
+      </bpmn:receiveTask>
+      <bpmn:receiveTask id="Activity_17uj0b6" name="Payment Authorized" messageRef="Message_1n3nb0m">
+        <bpmn:incoming>Flow_05ykaf3</bpmn:incoming>
+        <bpmn:outgoing>Flow_02s459l</bpmn:outgoing>
+      </bpmn:receiveTask>
+      <bpmn:serviceTask id="Activity_068941a" name="Payment Reminder">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="cloudevents" />
+          <zeebe:taskHeaders>
+            <zeebe:header key="Mode" value="EMIT_ONLY" />
+            <zeebe:header key="Type" value="Tickets.Reservation1MExpired" />
+            <zeebe:header key="Host" value="http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/default" />
+          </zeebe:taskHeaders>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_15obpx6</bpmn:incoming>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="Event_190tqp2" name="Time Out on Reservation">
+        <bpmn:incoming>Flow_0bbjpjs</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:serviceTask id="Activity_0zfzhn3" name="Reservation Timed Out">
+        <bpmn:extensionElements>
+          <zeebe:taskHeaders>
+            <zeebe:header key="Mode" value="EMIT_ONLY" />
+            <zeebe:header key="Type" value="Tickets.ReservationTimedOut" />
+            <zeebe:header key="Host" value="http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/default" />
+          </zeebe:taskHeaders>
+          <zeebe:taskDefinition type="cloudevents" />
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1w2893h</bpmn:incoming>
+        <bpmn:outgoing>Flow_0bbjpjs</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:boundaryEvent id="Event_1qz0uw7" cancelActivity="false" attachedToRef="Activity_0nh4mdv">
+        <bpmn:outgoing>Flow_15obpx6</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_07mglk1">
+          <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/PT10S</bpmn:timeCycle>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:boundaryEvent id="Event_1pwylet" attachedToRef="Activity_0nh4mdv">
+        <bpmn:outgoing>Flow_1w2893h</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_1ho84f5">
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2M</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="Flow_05ykaf3" sourceRef="Activity_0nh4mdv" targetRef="Activity_17uj0b6" />
+      <bpmn:sequenceFlow id="Flow_15obpx6" sourceRef="Event_1qz0uw7" targetRef="Activity_068941a" />
+      <bpmn:sequenceFlow id="Flow_0bbjpjs" sourceRef="Activity_0zfzhn3" targetRef="Event_190tqp2" />
+      <bpmn:sequenceFlow id="Flow_1w2893h" sourceRef="Event_1pwylet" targetRef="Activity_0zfzhn3" />
+      <bpmn:endEvent id="Event_1yzu0ii">
+        <bpmn:incoming>Flow_0pzzi4p</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:receiveTask id="Activity_1a3zgtc" name="Queue Exited" messageRef="Message_1wxshgo">
+        <bpmn:incoming>Flow_1t0ycc2</bpmn:incoming>
+        <bpmn:outgoing>Flow_1vqmayq</bpmn:outgoing>
+      </bpmn:receiveTask>
+      <bpmn:sequenceFlow id="Flow_1t0ycc2" sourceRef="Event_116uzgw" targetRef="Activity_1a3zgtc" />
+      <bpmn:sequenceFlow id="Flow_1vqmayq" sourceRef="Activity_1a3zgtc" targetRef="Activity_1uqxy1n" />
+      <bpmn:sequenceFlow id="Flow_0ya5os8" sourceRef="Activity_1uqxy1n" targetRef="Activity_0bkjy3q" />
+      <bpmn:sequenceFlow id="Flow_1h97jpr" sourceRef="Activity_0bkjy3q" targetRef="Activity_0nh4mdv" />
+      <bpmn:sequenceFlow id="Flow_02s459l" sourceRef="Activity_17uj0b6" targetRef="Activity_0bfem6c" />
+      <bpmn:serviceTask id="Activity_0bkjy3q" name="Book Customer Follow Up">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="cloudevents" />
+          <zeebe:taskHeaders>
+            <zeebe:header key="Mode" value="EMIT_ONLY" />
+            <zeebe:header key="Type" value="Customer.FollowUpBooked" />
+            <zeebe:header key="Host" value="http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/default" />
+          </zeebe:taskHeaders>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_0ya5os8</bpmn:incoming>
+        <bpmn:outgoing>Flow_1h97jpr</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Activity_0bfem6c" name="Emit Tickets">
+        <bpmn:extensionElements>
+          <zeebe:taskHeaders>
+            <zeebe:header key="Mode" value="EMIT_ONLY" />
+            <zeebe:header key="Type" value="Tickets.Emitted" />
+            <zeebe:header key="Host" value="http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/default" />
+          </zeebe:taskHeaders>
+          <zeebe:taskDefinition type="cloudevents" />
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_02s459l</bpmn:incoming>
+        <bpmn:outgoing>Flow_0pzzi4p</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_0pzzi4p" sourceRef="Activity_0bfem6c" targetRef="Event_1yzu0ii" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_0gsp6os" sourceRef="Activity_0uir0bf" targetRef="Event_1r97kjj" />
+    <bpmn:sequenceFlow id="Flow_0dj0jv3" sourceRef="Event_12583m9" targetRef="Activity_0uir0bf" />
+    <bpmn:sequenceFlow id="Flow_07p83st" sourceRef="Event_0deuwuq" targetRef="Activity_19ngein" />
+    <bpmn:endEvent id="Event_0qimwtl" name="Customer Abandoned Ticket Purchase">
+      <bpmn:incoming>Flow_0l7iyqh</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0l7iyqh" sourceRef="Activity_19ngein" targetRef="Event_0qimwtl" />
+    <bpmn:boundaryEvent id="Event_0deuwuq" name="Customer Abandoned Queue" attachedToRef="Activity_0uir0bf">
+      <bpmn:outgoing>Flow_07p83st</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_016a2bl" messageRef="Message_0bxg1rn" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="Activity_19ngein" name="Clean Up">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="cloudevents" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="Mode" value="EMIT_ONLY" />
+          <zeebe:header key="Host" value="http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/default" />
+          <zeebe:header key="Type" value="Session.CleanUp" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07p83st</bpmn:incoming>
+      <bpmn:outgoing>Flow_0l7iyqh</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:message id="Message_1vkitoz" name="Queue.CustomerJoined" />
+  <bpmn:message id="Message_1wxshgo" name="Queue.CustomerExited">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_0sesh39" name="Tickets.Reserved">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_1qq1kuy" name="Tickets.PaymentRequested">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=reservationId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_1n3nb0m" name="Tickets.PaymentsAuthorized">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=reservationId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_0bxg1rn" name="Queue.CustomerAbandoned">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=sessionId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="TICKETS">
+      <bpmndi:BPMNEdge id="Flow_0gsp6os_di" bpmnElement="Flow_0gsp6os">
+        <di:waypoint x="1220" y="300" />
+        <di:waypoint x="1262" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dj0jv3_di" bpmnElement="Flow_0dj0jv3">
+        <di:waypoint x="248" y="290" />
+        <di:waypoint x="280" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07p83st_di" bpmnElement="Flow_07p83st">
+        <di:waypoint x="490" y="558" />
+        <di:waypoint x="490" y="620" />
+        <di:waypoint x="560" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0l7iyqh_di" bpmnElement="Flow_0l7iyqh">
+        <di:waypoint x="660" y="620" />
+        <di:waypoint x="712" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0qimwtl_di" bpmnElement="Event_0qimwtl">
+        <dc:Bounds x="712" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="686" y="645" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14vwmy8_di" bpmnElement="Activity_19ngein">
+        <dc:Bounds x="560" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_12583m9_di" bpmnElement="Event_12583m9">
+        <dc:Bounds x="212" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="188" y="315" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1r97kjj_di" bpmnElement="Event_1r97kjj">
+        <dc:Bounds x="1262" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1254" y="325" width="53" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0uir0bf_di" bpmnElement="Activity_0uir0bf" isExpanded="true">
+        <dc:Bounds x="280" y="80" width="940" height="460" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1t0ycc2_di" bpmnElement="Flow_1t0ycc2">
+        <di:waypoint x="338" y="300" />
+        <di:waypoint x="380" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vqmayq_di" bpmnElement="Flow_1vqmayq">
+        <di:waypoint x="480" y="300" />
+        <di:waypoint x="510" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05ykaf3_di" bpmnElement="Flow_05ykaf3">
+        <di:waypoint x="870" y="300" />
+        <di:waypoint x="900" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15obpx6_di" bpmnElement="Flow_15obpx6">
+        <di:waypoint x="817" y="358" />
+        <di:waypoint x="817" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bbjpjs_di" bpmnElement="Flow_0bbjpjs">
+        <di:waypoint x="870" y="180" />
+        <di:waypoint x="909" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1w2893h_di" bpmnElement="Flow_1w2893h">
+        <di:waypoint x="820" y="242" />
+        <di:waypoint x="820" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ya5os8_di" bpmnElement="Flow_0ya5os8">
+        <di:waypoint x="610" y="300" />
+        <di:waypoint x="640" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h97jpr_di" bpmnElement="Flow_1h97jpr">
+        <di:waypoint x="740" y="300" />
+        <di:waypoint x="770" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02s459l_di" bpmnElement="Flow_02s459l">
+        <di:waypoint x="1000" y="300" />
+        <di:waypoint x="1020" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pzzi4p_di" bpmnElement="Flow_0pzzi4p">
+        <di:waypoint x="1120" y="300" />
+        <di:waypoint x="1152" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_0nh4mdv_di" bpmnElement="Activity_0nh4mdv">
+        <dc:Bounds x="770" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_068941a_di" bpmnElement="Activity_068941a">
+        <dc:Bounds x="767" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_190tqp2_di" bpmnElement="Event_190tqp2">
+        <dc:Bounds x="909" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="897" y="205" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0zfzhn3_di" bpmnElement="Activity_0zfzhn3">
+        <dc:Bounds x="770" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1yzu0ii_di" bpmnElement="Event_1yzu0ii">
+        <dc:Bounds x="1152" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_116uzgw_di" bpmnElement="Event_116uzgw">
+        <dc:Bounds x="302" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1a3zgtc_di" bpmnElement="Activity_1a3zgtc">
+        <dc:Bounds x="380" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uqxy1n_di" bpmnElement="Activity_1uqxy1n">
+        <dc:Bounds x="510" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17uj0b6_di" bpmnElement="Activity_17uj0b6">
+        <dc:Bounds x="900" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0wlll0h_di" bpmnElement="Activity_0bkjy3q">
+        <dc:Bounds x="640" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_19s77a8_di" bpmnElement="Activity_0bfem6c">
+        <dc:Bounds x="1020" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1qz0uw7_di" bpmnElement="Event_1qz0uw7">
+        <dc:Bounds x="799" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1pwylet_di" bpmnElement="Event_1pwylet">
+        <dc:Bounds x="802" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_05223ut_di" bpmnElement="Event_0deuwuq">
+        <dc:Bounds x="472" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="411" y="550" width="57" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -32,7 +32,7 @@
       <bpmn:incoming>Flow_0m3fiuk</bpmn:incoming>
       <bpmn:outgoing>Flow_06uiifu</bpmn:outgoing>
     </bpmn:receiveTask>
-    <bpmn:endEvent id="Event_0y9tphm">
+    <bpmn:endEvent id="Event_0y9tphm" name="Tickets Purchased">
       <bpmn:incoming>Flow_06uiifu</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_06uiifu" sourceRef="Activity_0p0qutd" targetRef="Event_0y9tphm" />
@@ -100,6 +100,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0y9tphm_di" bpmnElement="Event_0y9tphm">
         <dc:Bounds x="912" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="904" y="142" width="53" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
